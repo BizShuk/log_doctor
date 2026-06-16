@@ -1,5 +1,5 @@
 // src/prompt.ts — 純邏輯,組 LLM 提示。
-import { DiagnosticInfo, FixProposal, RepresentativeDiagnostic } from './types';
+import { FixProposal, RepresentativeDiagnostic } from './types';
 
 export interface PromptInput {
   diagnostic: RepresentativeDiagnostic;
