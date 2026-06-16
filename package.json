@@ -1,0 +1,85 @@
+{
+  "name": "log-doctor",
+  "displayName": "Log Doctor",
+  "description": "Scan workspace diagnostics and fix them with a configurable LLM provider, mixed auto/confirm strategy.",
+  "version": "0.1.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onCommand:logDoctor.fixWorkspace",
+    "onCommand:logDoctor.setApiKey"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "logDoctor.fixWorkspace",
+        "title": "Log Doctor: Fix Workspace Issues"
+      },
+      {
+        "command": "logDoctor.setApiKey",
+        "title": "Log Doctor: Set API Key"
+      }
+    ],
+    "configuration": {
+      "title": "Log Doctor",
+      "properties": {
+        "logDoctor.provider": {
+          "type": "string",
+          "enum": ["claude", "openai"],
+          "default": "claude",
+          "description": "Which LLM provider to call."
+        },
+        "logDoctor.model": {
+          "type": "string",
+          "default": "claude-sonnet-4-6",
+          "description": "Model ID passed to the provider. Defaults to a reasonable Claude model; override for OpenAI."
+        },
+        "logDoctor.autoApplySources": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["eslint", "prettier", "ruff", "gofmt", "stylelint"],
+          "description": "Diagnostic sources treated as low-risk and eligible for auto-apply."
+        },
+        "logDoctor.autoApplyMaxLines": {
+          "type": "number",
+          "default": 3,
+          "description": "Maximum lines a low-risk patch may add/remove; patches beyond this need confirmation."
+        },
+        "logDoctor.maxIssues": {
+          "type": "number",
+          "default": 50,
+          "description": "Maximum number of representative diagnostics enqueued per scan."
+        },
+        "logDoctor.cooldownMinutes": {
+          "type": "number",
+          "default": 30,
+          "description": "Minimum minutes between two actual fix applications."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -p . --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "vsce package",
+    "lint": "tsc -p . --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.3.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0",
+    "vsce": "^2.15.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.0",
+    "openai": "^4.40.0"
+  }
+}
