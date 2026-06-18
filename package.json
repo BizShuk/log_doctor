@@ -77,6 +77,46 @@
           "type": "number",
           "default": 30,
           "description": "Minimum minutes between two actual fix applications."
+        },
+        "logDoctor.listeners": {
+          "type": "array",
+          "default": [],
+          "markdownDescription": "Regex 規則,匹配外部 extension 推播到 `logDoctor.publish` 的訊息。命中時 append 到 **Log Doctor** channel;同源訊息在 cooldownMs 內會聚合顯示為 `(×N)`。",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "channel",
+              "pattern"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]+$",
+                "description": "規則識別,fingerprint 與 dedup 用,必須唯一。"
+              },
+              "channel": {
+                "type": "string",
+                "description": "要訂閱的 channel 名,支援 glob (`*` 匹配任意字元,例如 `ESLint*`、`Jest*`)。"
+              },
+              "pattern": {
+                "type": "string",
+                "format": "regex",
+                "description": "regex 字串,匹配整行 `text`。支援完整 JS RegExp 語法;case-insensitive 請用字元 class(如 `[Ww]arning`)或 RegExp `i` flag。"
+              },
+              "label": {
+                "type": "string",
+                "description": "channel 顯示用 label。省略時用 id。"
+              },
+              "cooldownMs": {
+                "type": "number",
+                "minimum": 1000,
+                "default": 300000,
+                "description": "同 fingerprint 訊息聚合視窗(毫秒)。過期視為新事件。"
+              }
+            },
+            "additionalProperties": false
+          }
         }
       }
     }
