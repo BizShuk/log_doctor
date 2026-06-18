@@ -16,11 +16,6 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:logDoctor.fixWorkspace",
-    "onCommand:logDoctor.setApiKey",
-    "onCommand:logDoctor.showOutput"
-  ],
   "main": "./out/src/extension.js",
   "contributes": {
     "commands": [
