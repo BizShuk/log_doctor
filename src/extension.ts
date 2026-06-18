@@ -58,8 +58,13 @@ async function processOneItem(secrets: vscode.SecretStorage): Promise<boolean> {
   const cfg = loadConfig();
   const apiKey = await getApiKey(cfg.provider, secrets);
   if (!apiKey) {
-    reportLog(`missing API key for ${cfg.provider}, pausing queue`);
-    return false;
+    reportLog(
+      `missing API key for ${cfg.provider}; clearing queue. ` +
+        `Set key via "Log Doctor: Set API Key" then re-run fixWorkspace.`,
+    );
+    await queue.clear();
+    // 回傳 true:本輪做了事(清空),讓外層 while 再跑一次;下次 peek 會是 empty queue 自然結束。
+    return true;
   }
   const provider = createProvider(cfg, apiKey);
   await queue.update(item.id, { status: 'in_flight' });
