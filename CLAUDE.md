@@ -38,14 +38,14 @@ log_doctor/
 │       └── factory.ts        # 依 cfg 挑 provider
 ├── test/                     # 14 個 .test.ts,Vitest 跑全部
 │   └── providers/            # provider 測試
-└── out/                      # tsc 產物
+└── out/                      # esbuild 產物 (單檔 bundle,含 SDK 內嵌)
 ```
 
 ## 技術棧 (Tech Stack)
 
 - Language: TypeScript 5.x (target ES2022, strict 全開)
 - Framework: VSCode Extension API 1.85+ (`@types/vscode`)
-- Build tool: `tsc -p .` (官方編譯,輸出到 `out/`)
+- Build tool: `tsc -p . --noEmit` (型別檢查) + `esbuild` (bundle 成單檔)
 - Test: Vitest 1.x (Node env,`vi.mock('vscode', ...)` 隔離)
 - Packaging: `vsce package` (產 `.vsix`)
 - LLM SDK: `@anthropic-ai/sdk ^0.27.0` + `openai ^4.40.0`
@@ -90,11 +90,12 @@ npm install
 ### 建置 (Build)
 
 ```bash
-npm run build    # 一次性
-npm run watch    # tsc watch
+npm run build    # tsc --noEmit (型別檢查) + node esbuild.config.mjs (bundle)
+npm run watch    # tsc --watch --noEmit (型別即時檢查,bundle 需手動跑)
+npm run typecheck # 同 watch 但單次
 ```
 
-產物在 `out/`,`package.json` 的 `main` 指向 `./out/src/extension.js`。
+產物在 `out/src/extension.js`(單檔 bundle,含 `@anthropic-ai/sdk` 與 `openai` 內嵌)。`package.json` 的 `main` 指向此檔。
 
 ### 測試 (Test)
 
@@ -112,7 +113,7 @@ npm run lint       # tsc --noEmit 型別檢查
 npm run package   # vsce package,產 .vsix
 ```
 
-`.vscodeignore` 已排除 `test/`、`vitest.config.ts`、`tsconfig.json` 與 `*.map`。
+`.vscodeignore` 排除 `test/`、`*.map`、`src/`、`docs/`、`plans/` 等不需隨 VSIX 打包的檔案;`node_modules` 的 SDK 已被 esbuild 內嵌,無需另外打包。
 
 整合測試 (`@vscode/test-electron`) 已列為 devDependency,但目前未提供 npm script;若要加,在 `package.json` 新增 `"test:integration": "vscode-test"` 並補 `test/integration/` 與 `vscode-test.config.mjs`(後續補上)。
 

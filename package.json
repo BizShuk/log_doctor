@@ -2,7 +2,7 @@
   "name": "log-doctor",
   "displayName": "Log Doctor",
   "description": "Scan workspace diagnostics and fix them with a configurable LLM provider, mixed auto/confirm strategy.",
-  "version": "0.1.3-hotfix",
+  "version": "0.2.1",
   "publisher": "shuk",
   "license": "Apache-2.0",
   "repository": {
@@ -87,11 +87,11 @@
     }
   },
   "scripts": {
-    "build": "tsc -p .",
-    "watch": "tsc -p . --watch",
+    "build": "tsc -p . --noEmit && node esbuild.config.mjs",
+    "watch": "tsc -p . --noEmit --watch",
+    "typecheck": "tsc -p . --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:integration": "tsc -p . && node ./out/test/integration/runTest.js",
     "package": "vsce package",
     "lint": "tsc -p . --noEmit"
   },
@@ -104,7 +104,8 @@
     "mocha": "^11.7.6",
     "typescript": "^5.4.0",
     "vitest": "^1.4.0",
-    "vsce": "^2.15.0"
+    "vsce": "^2.15.0",
+    "esbuild": "^0.21.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.27.0",
