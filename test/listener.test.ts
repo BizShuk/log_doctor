@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { fingerprint, matchRule, loadRules } from '../src/listener';
+import { fingerprint, matchRule, loadRules, newDedupState, applyDedup } from '../src/listener';
+import type { ListenerRule } from '../src/types';
 
 describe('fingerprint', () => {
   it('returns same hash for same ruleId + same text', () => {
@@ -115,5 +116,65 @@ describe('loadRules', () => {
     ]);
     expect(rules).toHaveLength(0);
     expect(warnings).toHaveLength(2);
+  });
+});
+
+describe('applyDedup', () => {
+  const rule = () => ({
+    id: 'r1', channel: 'X', pattern: 'foo', label: 'R1', cooldownMs: 300000,
+    _re: /foo/,
+  } as ListenerRule & { _re: RegExp });
+
+  it('first occurrence returns count=1 and stores entry', () => {
+    const state = newDedupState();
+    const t0 = 1_700_000_000_000;
+    const { line, evicted } = applyDedup(state, rule(), 'hello', t0);
+    expect(line.count).toBe(1);
+    expect(line.text).toBe('hello');
+    expect(evicted).toBe(0);
+    expect(state.entries.size).toBe(1);
+  });
+
+  it('second occurrence within cooldown returns count=2 with same sample text', () => {
+    const state = newDedupState();
+    const t0 = 1_700_000_000_000;
+    applyDedup(state, rule(), 'hello', t0);
+    const { line } = applyDedup(state, rule(), 'hello', t0 + 60_000);
+    expect(line.count).toBe(2);
+    expect(line.text).toBe('hello');
+  });
+
+  it('after cooldown elapses, treats as new event with count=1', () => {
+    const state = newDedupState();
+    const t0 = 1_700_000_000_000;
+    applyDedup(state, rule(), 'hello', t0);
+    const { line } = applyDedup(state, rule(), 'hello', t0 + 400_000); // > 300000 cooldown
+    expect(line.count).toBe(1);
+    expect(line.text).toBe('hello');
+  });
+
+  it('different fingerprints tracked independently', () => {
+    const state = newDedupState();
+    const t0 = 1_700_000_000_000;
+    applyDedup(state, rule(), 'hello', t0);
+    applyDedup(state, rule(), 'world', t0);
+    const a = applyDedup(state, rule(), 'hello', t0 + 10_000);
+    const b = applyDedup(state, rule(), 'world', t0 + 10_000);
+    expect(a.line.count).toBe(2);
+    expect(b.line.count).toBe(2);
+  });
+
+  it('evicts stale entries when entries.size >= 10000', () => {
+    const state = newDedupState();
+    // 灌 10000 筆,時間都設成 t0
+    const t0 = 1_700_000_000_000;
+    for (let i = 0; i < 10000; i++) {
+      applyDedup(state, rule(), `msg-${i}`, t0);
+    }
+    expect(state.entries.size).toBe(10000);
+    // 第 10001 筆,時間 +400s,觸發 evict
+    const { evicted } = applyDedup(state, rule(), 'msg-new', t0 + 400_000);
+    expect(evicted).toBeGreaterThanOrEqual(1);
+    expect(state.entries.size).toBeLessThanOrEqual(10000);
   });
 });

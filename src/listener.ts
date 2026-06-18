@@ -94,3 +94,70 @@ export function loadRules(cfg: ListenerRule[]): LoadRulesResult {
 
   return { rules, warnings };
 }
+
+export interface DedupState {
+  entries: Map<string, import('./types').DedupEntry>;
+}
+
+/** 建立空 dedup state。 */
+export function newDedupState(): DedupState {
+  return { entries: new Map() };
+}
+
+/** 處理一筆訊息:查 fingerprint,更新 count,必要時 evict 過期條目,回傳要寫入的 line。 */
+export function applyDedup(
+  state: DedupState,
+  rule: ListenerRule,
+  text: string,
+  now: number,
+): { line: import('./types').LogLineSpec; evicted: number } {
+  // Evict 過期條目
+  let evicted = 0;
+  if (state.entries.size >= 10000) {
+    const maxCooldown = Math.max(...Array.from(state.entries.values()).map((e) => e.rule.cooldownMs ?? 300000));
+    for (const [fp, entry] of state.entries) {
+      if (now - entry.lastSeen > maxCooldown) {
+        state.entries.delete(fp);
+        evicted++;
+      }
+    }
+  }
+
+  const fp = fingerprint(rule, text);
+  const existing = state.entries.get(fp);
+
+  if (existing && now - existing.firstSeen <= (rule.cooldownMs ?? 300000)) {
+    existing.count++;
+    existing.lastSeen = now;
+    return {
+      line: {
+        channel: rule.channel,
+        label: rule.label ?? rule.id,
+        severity: undefined,
+        text: existing.sampleText,
+        count: existing.count,
+      },
+      evicted,
+    };
+  }
+
+  // 新事件(或不命中 / 已過期)
+  state.entries.set(fp, {
+    fingerprint: fp,
+    count: 1,
+    firstSeen: now,
+    lastSeen: now,
+    sampleText: text,
+    rule,
+  });
+  return {
+    line: {
+      channel: rule.channel,
+      label: rule.label ?? rule.id,
+      severity: undefined,
+      text,
+      count: 1,
+    },
+    evicted,
+  };
+}
