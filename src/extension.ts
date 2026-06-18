@@ -146,8 +146,9 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand('logDoctor.showOutput', () => {
-      // Lazy channel + show;放第一條是因為 onCommand:logDoctor.showOutput
-      // 會在 activate() 之前先觸發擴充啟動,確保 channel 一建好就被顯示。
+      // 先 append 一行確認擴充已被觸發 activate;即使 show() 因為某種原因
+      // 沒把面板叫出來,也能在 Output channel 裡看到這行,作為「命令真的跑了」的證據。
+      reportLog('Log Doctor: output channel opened');
       reportShow();
     }),
     vscode.commands.registerCommand('logDoctor.setApiKey', async () => {
