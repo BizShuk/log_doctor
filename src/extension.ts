@@ -140,10 +140,10 @@ async function processOneItem(secrets: vscode.SecretStorage): Promise<boolean> {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  queue = new PersistentQueue(context.workspaceState);
-  queue.load();
-  scheduler = new Scheduler(context.workspaceState, loadConfig().cooldownMinutes);
-
+  // 先註冊所有命令,即使後續 init 失敗,使用者仍能跑 showOutput
+  // 透過 Output channel 看到錯誤訊息。VSCode 相容 editor(特別是 Antigravity IDE)
+  // 對 workspaceState 的行為可能不同;若放在 init 後面,init 一炸整個擴充
+  // 看起來就「命令 not found」。
   context.subscriptions.push(
     vscode.commands.registerCommand('logDoctor.showOutput', () => {
       // 先 append 一行確認擴充已被觸發 activate;即使 show() 因為某種原因
@@ -200,12 +200,32 @@ export async function activate(context: vscode.ExtensionContext) {
     }),
   );
 
-  // 重啟接續:若佇列還有 pending 且冷卻已過,跑完整輪
-  if (scheduler.canRun() && queue.peek()) {
-    let processed = true;
-    while (processed) {
-      processed = await processOneItem(context.secrets);
+  // 初始化 queue 與 scheduler。try/catch 確保即使 workspaceState
+  // 在 Antigravity IDE 等 VSCode 相容 editor 內行為不同,也不會讓
+  // activate throw 把整個擴充掛掉。
+  try {
+    queue = new PersistentQueue(context.workspaceState);
+    queue.load();
+    scheduler = new Scheduler(context.workspaceState, loadConfig().cooldownMinutes);
+    reportLog('Log Doctor: activated, queue + scheduler ready');
+  } catch (e) {
+    reportLog(
+      `Log Doctor: init failed (${(e as Error).message}); ` +
+        `showOutput 仍可用,fixWorkspace 可能失敗`,
+    );
+  }
+
+  // 重啟接續:若佇列還有 pending 且冷卻已過,跑完整輪。
+  // 也包 try/catch 避免因 queue/scheduler 未 init 導致 throw。
+  try {
+    if (scheduler && queue && scheduler.canRun() && queue.peek()) {
+      let processed = true;
+      while (processed) {
+        processed = await processOneItem(context.secrets);
+      }
     }
+  } catch (e) {
+    reportLog(`Log Doctor: restart hook failed: ${(e as Error).message}`);
   }
 }
 
