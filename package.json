@@ -2,7 +2,7 @@
   "name": "log-doctor",
   "displayName": "Log Doctor",
   "description": "Scan workspace diagnostics and fix them with a configurable LLM provider, mixed auto/confirm strategy.",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "publisher": "shuk",
   "license": "Apache-2.0",
   "repository": {
@@ -17,6 +17,12 @@
     "Other"
   ],
   "main": "./out/src/extension.js",
+  "activationEvents": [
+    "onCommand:logDoctor.fixWorkspace",
+    "onCommand:logDoctor.setApiKey",
+    "onCommand:logDoctor.showOutput",
+    "onCommand:logDoctor.publish"
+  ],
   "contributes": {
     "commands": [
       {
