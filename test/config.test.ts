@@ -31,6 +31,7 @@ describe('loadConfig', () => {
       autoApplyMaxLines: 5,
       maxIssues: 20,
       cooldownMinutes: 10,
+      listeners: [],
     });
   });
 });
