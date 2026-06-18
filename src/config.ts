@@ -1,6 +1,6 @@
 // src/config.ts — 讀設定 + 從 SecretStorage 取 API key。
 import * as vscode from 'vscode';
-import { ConfigSnapshot, ProviderName } from './types';
+import { ConfigSnapshot, ListenerRule, ProviderName } from './types';
 
 const KEY_BY_PROVIDER: Record<ProviderName, string> = {
   claude: 'logDoctor.apiKey.claude',
@@ -24,7 +24,7 @@ export function loadConfig(): ConfigSnapshot {
     autoApplyMaxLines: cfg.get<number>('autoApplyMaxLines', 3),
     maxIssues: cfg.get<number>('maxIssues', 50),
     cooldownMinutes: cfg.get<number>('cooldownMinutes', 30),
-    listeners: [], // TODO(Task 7): read from logDoctor.listeners setting
+    listeners: cfg.get<ListenerRule[]>('listeners', []) ?? [],
   };
 }
 
