@@ -22,6 +22,14 @@ suite('Log Doctor integration smoke', () => {
     );
   });
 
+  test('showOutput command is registered after activation', async () => {
+    const commands = await vscode.commands.getCommands(true);
+    assert.ok(
+      commands.includes('logDoctor.showOutput'),
+      'logDoctor.showOutput should be registered in the command palette',
+    );
+  });
+
   test('default provider is claude', () => {
     const cfg = vscode.workspace.getConfiguration('logDoctor');
     assert.strictEqual(cfg.get<string>('provider'), 'claude');

@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/BizShuk/vscode-plugin-experiment.git",
+    "url": "https://github.com/BizShuk/log_doctor",
     "directory": "log_doctor"
   },
   "engines": {
@@ -18,7 +18,8 @@
   ],
   "activationEvents": [
     "onCommand:logDoctor.fixWorkspace",
-    "onCommand:logDoctor.setApiKey"
+    "onCommand:logDoctor.setApiKey",
+    "onCommand:logDoctor.showOutput"
   ],
   "main": "./out/src/extension.js",
   "contributes": {
@@ -30,6 +31,10 @@
       {
         "command": "logDoctor.setApiKey",
         "title": "Log Doctor: Set API Key"
+      },
+      {
+        "command": "logDoctor.showOutput",
+        "title": "Log Doctor: Show Output Channel"
       }
     ],
     "configuration": {

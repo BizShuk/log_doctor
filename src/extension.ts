@@ -145,6 +145,11 @@ export async function activate(context: vscode.ExtensionContext) {
   scheduler = new Scheduler(context.workspaceState, loadConfig().cooldownMinutes);
 
   context.subscriptions.push(
+    vscode.commands.registerCommand('logDoctor.showOutput', () => {
+      // Lazy channel + show;放第一條是因為 onCommand:logDoctor.showOutput
+      // 會在 activate() 之前先觸發擴充啟動,確保 channel 一建好就被顯示。
+      reportShow();
+    }),
     vscode.commands.registerCommand('logDoctor.setApiKey', async () => {
       const cfg = loadConfig();
       const key = await vscode.window.showInputBox({
