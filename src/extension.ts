@@ -11,6 +11,7 @@ import { fixOne } from './fixer';
 import { applyOrConfirm } from './applier';
 import { verifyFix } from './verifier';
 import { log as reportLog, show as reportShow } from './report';
+import * as listenerHost from './listenerHost';
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -226,6 +227,15 @@ export async function activate(context: vscode.ExtensionContext) {
     }
   } catch (e) {
     reportLog(`Log Doctor: restart hook failed: ${(e as Error).message}`);
+  }
+
+  // 啟動 Output Channel listener(註冊 logDoctor.publish 命令)。
+  // 獨立 try/catch:即使 queue/scheduler init 失敗,listener 仍要註冊,
+  // 否則外部腳本送日誌進來時會得到 "command not found"。
+  try {
+    listenerHost.activateListener(context, loadConfig());
+  } catch (e) {
+    reportLog(`Log Doctor: listener init failed: ${(e as Error).message}; fixWorkspace 仍可用`);
   }
 }
 
