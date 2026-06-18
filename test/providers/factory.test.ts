@@ -22,7 +22,7 @@ const base: ConfigSnapshot = {
   autoApplyMaxLines: 3,
   maxIssues: 50,
   cooldownMinutes: 30,
-  listeners: [], // TODO(Task 7): read from logDoctor.listeners setting
+  listeners: [],
 };
 
 describe('createProvider', () => {
