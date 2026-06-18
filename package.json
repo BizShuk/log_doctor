@@ -87,11 +87,11 @@
     }
   },
   "scripts": {
-    "build": "tsc -p .",
-    "watch": "tsc -p . --watch",
+    "build": "tsc -p . --noEmit && node esbuild.config.mjs",
+    "watch": "tsc -p . --noEmit --watch",
+    "typecheck": "tsc -p . --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:integration": "tsc -p . && node ./out/test/integration/runTest.js",
     "package": "vsce package",
     "lint": "tsc -p . --noEmit"
   },
