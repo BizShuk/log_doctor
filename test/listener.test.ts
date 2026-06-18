@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fingerprint, matchRule, loadRules, newDedupState, applyDedup } from '../src/listener';
+import { fingerprint, matchRule, loadRules, newDedupState, applyDedup, formatLogLine } from '../src/listener';
 import type { ListenerRule } from '../src/types';
 
 describe('fingerprint', () => {
@@ -178,3 +178,42 @@ describe('applyDedup', () => {
     expect(state.entries.size).toBeLessThanOrEqual(10000);
   });
 });
+
+describe('formatLogLine', () => {
+  it('count=1 omits ×N suffix', () => {
+    const out = formatLogLine({
+      channel: 'ESLint', label: 'ESLint Warning', text: 'warning foo', count: 1,
+    });
+    expect(out).not.toMatch(/×/);
+    expect(out).toContain('ESLint Warning@ESLint: warning foo');
+  });
+
+  it('count=5 includes (×5)', () => {
+    const out = formatLogLine({
+      channel: 'X', label: 'L', text: 'msg', count: 5,
+    });
+    expect(out).toMatch(/\(×5\)$/);
+  });
+
+  it('includes [error] severity prefix when provided', () => {
+    const out = formatLogLine({
+      channel: 'X', label: 'L', text: 'msg', count: 1, severity: 'error',
+    });
+    expect(out).toMatch(/\[error\]/);
+  });
+
+  it('omits severity prefix when undefined', () => {
+    const out = formatLogLine({
+      channel: 'X', label: 'L', text: 'msg', count: 1,
+    });
+    expect(out).not.toMatch(/\[(info|warn|error)\]/);
+  });
+
+  it('starts with ISO timestamp', () => {
+    const out = formatLogLine({
+      channel: 'X', label: 'L', text: 'msg', count: 1,
+    });
+    expect(out).toMatch(/^\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+  });
+});
+

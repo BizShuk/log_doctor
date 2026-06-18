@@ -161,3 +161,12 @@ export function applyDedup(
     evicted,
   };
 }
+
+/** 把 LogLineSpec 格式化為要寫入 channel 的一行。格式:[<iso>] [<severity?>] <label>@<channel>: <text>[ (×N)] */
+export function formatLogLine(spec: import('./types').LogLineSpec): string {
+  const ts = new Date().toISOString();
+  const sev = spec.severity ? `[${spec.severity}] ` : '';
+  const cnt = spec.count > 1 ? ` (×${spec.count})` : '';
+  return `[${ts}] ${sev}${spec.label}@${spec.channel}: ${spec.text}${cnt}`;
+}
+
