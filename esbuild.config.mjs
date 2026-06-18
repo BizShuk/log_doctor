@@ -18,6 +18,8 @@ await build({
   external: ['vscode'],
   // Keep sourcemaps off in the package; regenerate locally if needed.
   sourcemap: false,
+  // Minify for smaller shipped artifact (esbuild minification is safe for CJS Node18).
+  minify: true,
   // Resolve from project root to pick up node_modules/@anthropic-ai/sdk etc.
   absWorkingDir: __dirname,
   logLevel: 'info',
