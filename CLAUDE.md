@@ -38,7 +38,7 @@ log_doctor/
 │       └── factory.ts        # 依 cfg 挑 provider
 ├── test/                     # 14 個 .test.ts,Vitest 跑全部
 │   └── providers/            # provider 測試
-└── out/                      # tsc 產物 (打包時排除)
+└── out/                      # tsc 產物
 ```
 
 ## 技術棧 (Tech Stack)

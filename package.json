@@ -3,11 +3,19 @@
   "displayName": "Log Doctor",
   "description": "Scan workspace diagnostics and fix them with a configurable LLM provider, mixed auto/confirm strategy.",
   "version": "0.1.0",
-  "publisher": "local",
+  "publisher": "shuk",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BizShuk/vscode-plugin-experiment.git",
+    "directory": "log_doctor"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Other"],
+  "categories": [
+    "Other"
+  ],
   "activationEvents": [
     "onCommand:logDoctor.fixWorkspace",
     "onCommand:logDoctor.setApiKey"
@@ -29,7 +37,10 @@
       "properties": {
         "logDoctor.provider": {
           "type": "string",
-          "enum": ["claude", "openai"],
+          "enum": [
+            "claude",
+            "openai"
+          ],
           "default": "claude",
           "description": "Which LLM provider to call."
         },
@@ -40,8 +51,16 @@
         },
         "logDoctor.autoApplySources": {
           "type": "array",
-          "items": { "type": "string" },
-          "default": ["eslint", "prettier", "ruff", "gofmt", "stylelint"],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "eslint",
+            "prettier",
+            "ruff",
+            "gofmt",
+            "stylelint"
+          ],
           "description": "Diagnostic sources treated as low-risk and eligible for auto-apply."
         },
         "logDoctor.autoApplyMaxLines": {
@@ -67,13 +86,17 @@
     "watch": "tsc -p . --watch",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:integration": "tsc -p . && node ./out/test/integration/runTest.js",
     "package": "vsce package",
     "lint": "tsc -p . --noEmit"
   },
   "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
     "@vscode/test-electron": "^2.3.0",
+    "mocha": "^11.7.6",
     "typescript": "^5.4.0",
     "vitest": "^1.4.0",
     "vsce": "^2.15.0"

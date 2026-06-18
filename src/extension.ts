@@ -45,7 +45,7 @@ async function applyEdit(edit: vscode.WorkspaceEdit): Promise<boolean> {
   return true;
 }
 
-async function processOneItem(): Promise<boolean> {
+async function processOneItem(secrets: vscode.SecretStorage): Promise<boolean> {
   if (!scheduler.canRun()) {
     reportLog(`cooldown active, next run in ${Math.round(scheduler.msUntilNextRun() / 1000)}s`);
     return false;
@@ -56,7 +56,7 @@ async function processOneItem(): Promise<boolean> {
     return false;
   }
   const cfg = loadConfig();
-  const apiKey = await getApiKey(cfg.provider, (ctx as any).secrets);
+  const apiKey = await getApiKey(cfg.provider, secrets);
   if (!apiKey) {
     reportLog(`missing API key for ${cfg.provider}, pausing queue`);
     return false;
@@ -134,10 +134,7 @@ async function processOneItem(): Promise<boolean> {
   return true;
 }
 
-let ctx: vscode.ExtensionContext;
-
 export async function activate(context: vscode.ExtensionContext) {
-  ctx = context;
   queue = new PersistentQueue(context.workspaceState);
   queue.load();
   scheduler = new Scheduler(context.workspaceState, loadConfig().cooldownMinutes);
@@ -183,15 +180,21 @@ export async function activate(context: vscode.ExtensionContext) {
           updatedAt: Date.now(),
         });
       }
-      // 跑一輪;若冷卻中就停在這,使用者可以等下次
-      await processOneItem();
+      // 跑到冷卻或佇列空;cooldown 結束時自動停下,不卡住命令
+      let processed = true;
+      while (processed) {
+        processed = await processOneItem(context.secrets);
+      }
       reportShow();
     }),
   );
 
-  // 重啟接續:若佇列還有 pending 且冷卻已過,跑一輪
+  // 重啟接續:若佇列還有 pending 且冷卻已過,跑完整輪
   if (scheduler.canRun() && queue.peek()) {
-    await processOneItem();
+    let processed = true;
+    while (processed) {
+      processed = await processOneItem(context.secrets);
+    }
   }
 }
 
